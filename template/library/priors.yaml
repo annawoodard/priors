@@ -1,0 +1,42 @@
+# Settings for this library. Agents read this file first.
+
+# Whose library this is. Rules and procedures say "the owner"; this is who
+# that is. Agents never write in the owner's section of a paper note.
+owner: {{owner}}
+take_heading: "{{owner}}'s take"
+
+# The field the owner wants to carry ideas into. Every paper note gets a
+# section, headed with the value of `note_section`, saying what it would take to use the paper
+# here, checked against `page`.
+domain:
+  name: {{domain}}
+  page: map/{{domain_slug}}.md
+  note_section: {{domain_title}}
+
+# Top-level map pages. `priors init` used this list to create one page per
+# area. Changing it later does nothing; edit the pages in map/ instead.
+areas:
+  - id: methods
+    title: Methods and theory
+    summary: Methods and theory that could carry over to {{domain}}.
+  - id: application
+    title: Application
+    summary: The applied side of {{domain}} - tasks, datasets, groups and open problems.
+  - id: bridge
+    title: Bridge
+    summary: Where methods and application meet - what's been tried in {{domain}}, and the gaps.
+
+# `priors index` warns when a topic page lists more papers than this.
+topic_paper_limit: 20
+
+# How agents run the priors command on this machine.
+run: {{run}}
+
+# How PDFs that agents can't download get into papers/<id>/. Agents use this
+# to write a fetch request for the owner.
+fetch: >-
+  The owner downloads them by hand and commits them. Ask with a list of DOIs
+  and target folders.
+
+# Where pasted reviews come from, for the review procedure.
+review_source: a deep-research tool

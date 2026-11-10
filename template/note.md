@@ -1,7 +1,7 @@
 ---
 id: <id>
 type: paper
-summary: What the paper does and its main result, in one line.
+summary: What the paper does and its main result, in at most 25 words.
 parents: [topics/<topic>]
 status: known           # requested | known | skimmed | read | core (only the owner sets core)
 year: <year>
@@ -36,6 +36,11 @@ version: <publisher | accepted | preprint: which version paper.pdf is>
 ## Our inferences
 
 - What we conclude ourselves.
+
+## Links
+
+<!-- Optional. One line per link to another note, starting with its relation:
+contradicts, builds-on, same-data-as, same-method-as, same-study-as. -->
 
 ## <domain.note_section from priors.yaml>
 

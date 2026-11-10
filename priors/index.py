@@ -1,6 +1,6 @@
 """Rebuild index.md from page headers and report problems with the tree.
 
-Usage: priors index [--check]
+Usage: priors index [--check] [--quotes]
 
 A page is a tree node if its YAML header has a `type` of map, topic, paper or
 review. A node is named by its path without `.md`, with a trailing `/note` or
@@ -10,6 +10,11 @@ by those names. With --check, nothing is written. Exits 1 if any error is found.
 A paper with status `requested` is a stub waiting for its PDF. index.md lists
 every stub with its DOI or arXiv ID under "Requested PDFs", which is the list a
 fetch request sends.
+
+It also checks paper notes against their own text: each passage quoted under
+Claims should appear in `paper.txt` (see quotes.py), and each line of a
+`## Links` section must name a known relation. --quotes lists every quote it
+couldn't find instead of one warning per note.
 """
 
 import re
@@ -17,7 +22,7 @@ import sys
 
 import yaml
 
-from . import config
+from . import config, quotes
 
 ROOT = None
 TYPES = {"map", "topic", "paper", "review"}
@@ -25,6 +30,9 @@ STATUS_ORDER = ["requested", "known", "skimmed", "read", "core"]
 STATUSES = set(STATUS_ORDER)
 VERSIONS = {"publisher", "accepted", "preprint"}
 TOPIC_PAPER_LIMIT = 20
+SUMMARY_WORDS = 25
+RELATIONS = {"contradicts", "builds-on", "same-data-as", "same-method-as", "same-study-as"}
+LINK_LINE = re.compile(r"^- ([a-z-]+): \[")
 SKIP_DIRS = {"inbox", ".git", "digests"}
 LINK = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
 
@@ -88,7 +96,11 @@ def check(nodes):
             if str(h.get("id", folder)) != folder:
                 warnings.append(f"{rel}: id {h.get('id')!r} doesn't match folder {folder!r}")
             errors += check_paper_files(rel, h)
+            errors += check_links_section(rel, node["body"])
             warnings += warn_paper_files(rel, h)
+            words = len(str(h.get("summary") or "").split())
+            if words > SUMMARY_WORDS:
+                warnings.append(f"{rel}: summary is {words} words; keep it to {SUMMARY_WORDS}")
         if h["type"] != "map" and not node["parents"]:
             errors.append(f"{rel}: no parents, so it isn't reachable from the map")
         for parent in node["parents"]:
@@ -145,6 +157,37 @@ def warn_paper_files(rel, h):
     return warnings
 
 
+def check_links_section(rel, body):
+    """Errors in a note's `## Links` section: each line is `- <relation>: [name](path)`."""
+    match = re.search(r"^## Links\s*$(.*?)(?=^## |\Z)", body, re.M | re.S)
+    if not match:
+        return []
+    errors = []
+    for line in match.group(1).splitlines():
+        if not line.startswith("- "):
+            continue
+        m = LINK_LINE.match(line)
+        if not m or m.group(1) not in RELATIONS:
+            errors.append(f"{rel}: link line {line.strip()[:60]!r} must start with one of {sorted(RELATIONS)}")
+    return errors
+
+
+def quote_report(nodes):
+    """Warnings for notes with quotes not found in their text, and the full list of misses."""
+    warnings, misses = [], []
+    for node in nodes.values():
+        if node["header"]["type"] != "paper":
+            continue
+        rel = node["path"]
+        result = quotes.check(ROOT / rel.parent, node["body"])
+        if not result or not result[1]:
+            continue
+        checked, missing = result
+        warnings.append(f"{rel}: {len(missing)} of {checked} quoted passages not found in its text (priors index --quotes)")
+        misses += [f"{rel}: {m[:120]!r}" for m in missing]
+    return warnings, misses
+
+
 def requested(nodes):
     """Lines for index.md listing each requested paper and where its PDF goes."""
     lines = []
@@ -178,9 +221,10 @@ def outline(nodes):
     def walk(name, depth, path):
         node = nodes[name]
         again = name in seen
-        lines.append("  " * depth + "- " + describe(name, node) + (" (also listed above)" if again else ""))
         if again:
+            lines.append("  " * depth + f"- [{name}]({node['path'].as_posix()}) (also listed above)")
             return
+        lines.append("  " * depth + "- " + describe(name, node))
         seen.add(name)
         order = {"topic": 0, "map": 0, "review": 1, "paper": 2}
         kids = sorted(node["children"], key=lambda c: (order[nodes[c]["header"]["type"]], c))
@@ -207,6 +251,8 @@ def main(argv=None):
     nodes, errors = load_nodes()
     more_errors, warnings = check(nodes)
     errors += more_errors
+    quote_warnings, misses = quote_report(nodes)
+    warnings += quote_warnings
     papers = [v["header"] for v in nodes.values() if v["header"]["type"] == "paper"]
     counts = ", ".join(f"{sum(p.get('status') == s for p in papers)} {s}" for s in STATUS_ORDER)
     wanted = requested(nodes)
@@ -228,6 +274,9 @@ def main(argv=None):
         print("ERROR  " + line)
     for line in warnings:
         print("WARN   " + line)
+    if "--quotes" in argv:
+        for line in misses:
+            print("QUOTE  " + line)
     print(f"{len(nodes)} pages, {len(papers)} papers, {len(errors)} errors, {len(warnings)} warnings")
     sys.exit(1 if errors else 0)
 

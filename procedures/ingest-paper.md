@@ -23,13 +23,17 @@ a `requested` stub, replace the stub with the full note and keep its parents.
    results and conclusion, and the parts of the supplement the main text
    relies on. Record what you read in `coverage:`.
 5. **Write `note.md`** from the engine's `template/note.md`:
-   - a one-line `summary` saying what the paper does and its main result;
+   - a one-line `summary` of at most 25 words saying what the paper does and
+     its main result;
    - purpose and mechanism;
    - claims, each with a section, table, figure or equation and the passage
      or number quoted;
    - speculation, then our inferences, kept apart;
    - the domain section, headed with the value of `domain.note_section`,
      checked against the domain page;
+   - under `## Links`, a line for each library note this paper contradicts,
+     builds on, or shares data, method or study with, as
+     `- contradicts: [name](../<id>/note.md)`;
    - the owner's section, headed with the value of `take_heading`, left
      empty. Never write in it.
 6. **Set `status`.** `known` unless the owner says they skimmed or read it.
@@ -40,5 +44,7 @@ a `requested` stub, replace the stub with the full note and keep its parents.
    the topic's "How the papers connect" and "Open questions" where the new
    paper changes them. Update the parent's summary if it no longer covers
    its children, and set `updated` to today's date on every page you changed.
-8. **Rebuild the index.** `priors index` must report no errors.
+8. **Rebuild the index.** `priors index` must report no errors. Fix any
+   quoted passage it can't match in the paper's text (`priors index --quotes`
+   lists them); values read off a figure are expected misses.
 9. **Log it** in `log.md`, and ask the owner for their take if they read it.

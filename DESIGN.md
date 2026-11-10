@@ -145,23 +145,44 @@ so agents and scripts know where each kind of content is.
 
 ## How agents find things
 
-An agent answers a question by walking the tree from `index.md` down, and can
-grep any level directly when it already knows what it's looking for.
+An agent answers a question by grepping page headers and text across every
+level first, in several phrasings, then opening the matching topics and their
+notes. It reads all of `index.md` only for survey questions (Anna,
+2026-11-10). `procedures/ask.md` has the steps.
 
 A personal library is small enough that this needs no database and no
-embeddings. At 500 papers, `index.md` would be around 20,000 tokens, which
-fits in one read. Published work points the same way:
+embeddings. `index.md` costs about 105 tokens per paper (19,818 bytes for 47
+papers on 2026-11-10, at 4 bytes a token), so about 50,000 tokens at 500
+papers: affordable for a survey question, wasteful for every question. To
+keep it there, a paper's summary is at most 25 words, and a paper listed
+under several topics is printed in full once and as a bare link elsewhere.
 
-- Agents do well loading files on demand by path instead of having chunks
-  retrieved for them ([Anthropic,
-  2025](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)).
-- On small plain-text collections, grep holds up against vector search. The
-  evidence is thin: mainly one unrefereed preprint on chat-memory questions.
-- RAPTOR (Sarthi et al., ICLR 2024, arXiv:2401.18059) found a tree of
-  summaries beat flat retrieval on questions that span a document, and that
-  searching every level at once beat walking down from the root. LATTICE
-  (Gupta et al., arXiv:2510.13217) and PageIndex have an LLM choose branches
-  from node summaries. We've read summaries of these papers, not the papers.
+The evidence, from the review `2026-11-10-llm-library-structure` in Anna's library, citations checked against the full texts:
+
+- Automatic summary trees help less than they look. RAPTOR (Sarthi et al.,
+  ICLR 2024, arXiv:2401.18059) builds its tree inside one document, not
+  across a corpus, and gains +1.8 to +4.5 F1 over flat retrieval on QASPER;
+  its "search every level at once beats walking down" result rests on 20
+  QASPER documents. In HippoRAG 2's reproduction (arXiv:2502.14802), RAPTOR
+  (48.8 F1) and GraphRAG fell below plain dense retrieval (57.0).
+- Who draws the topics matters: LATTICE (Gupta et al., arXiv:2510.13217,
+  preprint) found topics partitioned by an LLM beat embedding clusters (46.0
+  vs 33.5 nDCG@10 on TheoremQA-T), because clusters merge papers that share
+  words but not ideas. Its LLM walk down the tree lost 22.6 points without
+  calibration across branches, so walking down by summaries is the fragile
+  part.
+- Grep holds up for agents: it beat vector search in all 10 harness-model
+  pairs on 116 chat-memory questions (Sen et al., arXiv:2605.15184,
+  preprint), though vector search won 5 of 10 when results were written to
+  files, and the questions reward literal strings.
+- Long inputs cost accuracy, more so when the wording differs from the
+  question (Lost in the Middle, TACL 2024; Chroma's context-rot report), so
+  an agent loads one topic's notes at a time: at most about 40,000 tokens.
+  A question across the library goes to one sub-agent per topic, each
+  returning a digest of about 2,000 tokens with links.
+- Loading files on demand by path is recommended practice ([Anthropic,
+  2025](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)),
+  not a measured result.
 
 **Every page starts with a short header.** The header is what the index, the
 parents and grep read.
@@ -170,7 +191,7 @@ parents and grep read.
 ---
 id: 2610.14136-correction-training
 type: paper            # map | topic | paper | review
-summary: One line shown in the parent and in index.md.
+summary: One line, at most 25 words, shown in the parent and in index.md.
 parents: [topics/motion-correction]
 status: read           # papers only: known | skimmed | read | core
 year: 2026
@@ -209,23 +230,31 @@ topics past the size limit, parents whose `updated` date is older than a
 child's, a paper with a PDF but no `version`, a supplement that `coverage`
 doesn't mention, and a requested paper whose PDF has arrived. Agents run it after every change.
 
-Open: when to add a search engine. The trigger would be grep missing papers
-that word the same idea differently ("dropout" against "random masking"),
-which mentor mode will hit first, since older papers and other fields use
-other words. The likely choice is qmd: a local search tool for markdown that
+Open: when to add a search engine. The trigger is the library's evaluation
+(`procedures/evaluate.md`): add one when grep misses a gold note on two or
+more of the questions that word an idea differently from the papers
+("dropout" against "random masking"). An `aliases:` header field of other
+names for each idea is the cheaper alternative, but its cited evidence
+didn't hold up: LongMemEval's recall gain came from adding extracted facts
+to the search keys, not keyphrases (Anna, 2026-11-10). The likely choice is qmd: a local search tool for markdown that
 combines keyword and meaning-based search, reranks with a small local model,
 and can be called from Claude Code. It needs Node and about 2 GB of models.
 
-Open: whether to suggest topics by clustering papers automatically, as RAPTOR
-and LATTICE build their trees. The proposal is that the owner and the agent
-choose topics by hand, and clustering only suggests missing topics during the
-monthly check.
+Topics are chosen by hand. When a topic nears `topic_paper_limit`, the
+monthly check may ask an LLM to partition its papers' summaries and propose a
+split for the owner to approve. Embedding clusters are not used: in LATTICE
+they grouped papers by shared words rather than shared ideas (Anna,
+2026-11-10).
 
 ## Rules every page obeys
 
 Every claim traces back to a quoted passage in the paper, because summaries of
-summaries drift. `priors index` enforces the structural rules now; the
-monthly check will enforce the rest (Planned).
+summaries drift, and LLMs judging faithfulness miss unfaithful claims (FABLES,
+COLM 2024). So checks are string matches, not an LLM's judgment. `priors
+index` enforces the structural rules and checks that each passage quoted
+under a note's Claims appears in its `paper.txt` (`priors/quotes.py`; values
+read off a figure can't be matched). The monthly check will enforce the rest
+(Planned).
 
 - Originals are never edited. That covers PDFs and pasted reviews. The monthly
   check will flag any change git shows to one.
@@ -233,6 +262,11 @@ monthly check will enforce the rest (Planned).
   that claim quotes the paper. The monthly check will flag claims that don't.
 - What the authors show, what they speculate and what we infer stay in
   separate sections.
+- Links between notes that matter for a question are typed, in a note's
+  `## Links` section: `contradicts`, `builds-on`, `same-data-as`,
+  `same-method-as`, `same-study-as`. This makes "what contradicts X" a grep.
+  `priors index` rejects other relations and broken targets (Anna,
+  2026-11-10; the evidence for the format is thin).
 - A claim taken from a pasted review is credited to the review until someone
   checks it against the paper. The monthly check will list the ones still
   unchecked.
@@ -254,6 +288,7 @@ Each built operation has a procedure in `procedures/`.
 | get PDFs | `fetch-pdfs.md` | built |
 | mentor mode | `mentor.md` | built |
 | answer a question | `ask.md` | built |
+| evaluate the library | `evaluate.md` | built |
 | weekly digest | none yet | Planned |
 | monthly check | none yet | Planned |
 
@@ -342,6 +377,14 @@ The test is whether the owner reads more and finds what they need.
   result the owner flags as something they didn't know.
 - A new feature gets built when a real session needed it ("I wanted to ask X
   and couldn't").
+- The library's `eval/questions.md` is a set of questions with the notes a
+  complete answer must cite, run with `procedures/evaluate.md` in fresh
+  contexts and scored for retrieval and correctness. The full set runs after
+  any change to the template, `ask.md` or the tree; a subset monthly; a
+  question is added whenever a real session fails (Anna, 2026-11-10).
+- The library's `AGENTS.md` holds rules and commands, not a tour of the
+  library: context files of that kind didn't raise coding agents' success
+  and added cost (Gloaguen et al., arXiv:2602.11988, preprint; abstract read).
 
 ## Not in scope
 
@@ -357,6 +400,8 @@ The test is whether the owner reads more and finds what they need.
 
 Built (2026-11-03): the `priors` command (`init`, `index`, `lookup`, `where`),
 the template, and the procedures in the table above. One library uses it.
+Added 2026-11-10: `requested` stubs, supplements, `version`, topic
+connections, the quote check, typed links and the evaluation procedure.
 
 Planned: the weekly digest, the monthly check, Semantic Scholar.
 

@@ -7,14 +7,9 @@ engine's `DESIGN.md` says how the system works.
 
 ## Where to start
 
-- `index.md` is the whole tree, one line per page. Read it next.
-- `map/` holds one page per area. `topics/` has one page per topic, linking
-  its papers. `papers/<id>/note.md` is one paper, and `paper.txt` beside it
-  is the full text.
-- The domain page (`domain.page` in `priors.yaml`) says what makes the
-  owner's domain different. Check each note's domain section
-  (`domain.note_section`) against it.
-- `queue.md` is what's waiting to be read, `log.md` is what's been done.
+Read `index.md` only when you need the whole tree; otherwise grep the pages
+(`procedures/ask.md` says how). Papers are `papers/<id>/note.md`, with the
+full text in `paper.txt` beside it.
 
 ## What to do when asked
 
@@ -27,6 +22,7 @@ The procedures are in `{{engine}}/procedures/`.
 | get PDFs for papers in the library | `fetch-pdfs.md` |
 | suggest approaches to a problem | `mentor.md` |
 | answer a question about the literature | `ask.md` |
+| evaluate the library, or after changing the template or `ask.md` | `evaluate.md` |
 
 ## Rules
 

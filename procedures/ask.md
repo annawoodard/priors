@@ -1,7 +1,10 @@
 # Answer a question about the literature
 
-1. **Search first.** Grep the page headers and text across every level
-   (`papers/*/note.md`, `topics/`, `map/`) for the question's terms, in
+1. **Search first.** Grep the page headers and text across every level for
+   the question's terms, naming the files by pattern instead of searching
+   recursively: `grep -i -E '<terms>' papers/*/note.md topics/*.md map/*.md`
+   (add `papers/*/paper.txt` to search full texts). Libraries often live on
+   shared filesystems where recursive walks are restricted. Search in
    several phrasings: the owner's words, the field's usual term, and the
    term a neighbouring field would use. Open the matching topic pages, then
    their notes. Read all of `index.md` only for survey questions ("what does

@@ -30,7 +30,8 @@ The procedures are in `{{engine}}/procedures/`.
 
 ## Rules
 
-- Never edit originals: `paper.pdf` files and `reviews/*/original.md`.
+- Never edit originals: `paper.pdf` and `supplement*.pdf` files and
+  `reviews/*/original.md`.
 - Tie every claim about a paper to a section, table, figure or equation, with
   the passage or number quoted. Read the paper itself, and record in the
   note's `coverage:` what you read.
@@ -44,6 +45,9 @@ The procedures are in `{{engine}}/procedures/`.
 - Every page in the tree has a header with a one-line `summary`, its
   `parents` and `updated`. After changing pages, run `priors index` and fix
   any errors it reports.
+- A paper waiting for its PDF has a stub note with status `requested`; the
+  "Requested PDFs" section of `index.md` lists them. New topics start from the
+  engine's `template/topic.md`.
 - When answering, cite the notes you used, and say so when the library
   doesn't cover the question.
 - Add an entry to `log.md` for every session of a kind listed there.

@@ -3,7 +3,7 @@ id: <id>
 type: paper
 summary: What the paper does and its main result, in one line.
 parents: [topics/<topic>]
-status: known           # known | skimmed | read | core (only the owner sets core)
+status: known           # requested | known | skimmed | read | core (only the owner sets core)
 year: <year>
 title: <title>
 authors: [<first author>, <...>]
@@ -13,7 +13,8 @@ doi: <doi>
 openalex: <W-id>
 ingested: <YYYY-MM-DD>
 updated: <YYYY-MM-DD>
-coverage: <which sections were read>
+coverage: <which sections were read, and which parts of any supplement>
+version: <publisher | accepted | preprint: which version paper.pdf is>
 ---
 
 # <title>

@@ -92,7 +92,8 @@ paper's full text. Every kind of record has one home.
 ├── papers/<id>/          levels 3 and 4: one paper
 │   ├── note.md           everything we know about it
 │   ├── paper.txt         text extracted from the PDF
-│   └── paper.pdf         as downloaded, never edited
+│   ├── paper.pdf         as downloaded, never edited
+│   └── supplement*.pdf   supplementary material, never edited, with supplement*.txt
 ├── reviews/<slug>/       one pasted review
 │   ├── original.md       exactly as pasted, never edited
 │   ├── review.md         cleaned up
@@ -119,10 +120,18 @@ Every paper note has the same sections, from the engine's `template/note.md`,
 so agents and scripts know where each kind of content is.
 
 - **Header**: title, authors, year, venue, DOI or arXiv ID, OpenAlex ID, dates,
-  and `coverage`, which says what the agent read.
-- **Status**: one of `known` (we know it exists, from its abstract or a
-  review), `skimmed`, `read`, or `core` (the owner should understand it
-  themselves). The agent can propose `core`. Only the owner sets it.
+  `coverage`, which says what the agent read (including which parts of any
+  supplement), and `version`: whether `paper.pdf` is the `publisher`'s
+  version of record, an `accepted` author manuscript or a `preprint`. A
+  preprint's numbers can differ from the published paper's (Anna,
+  2026-11-10).
+- **Status**: one of `requested` (a stub waiting for its PDF), `known` (we
+  know it exists, from its abstract or a review), `skimmed`, `read`, or
+  `core` (the owner should understand it themselves). The agent can propose
+  `core`. Only the owner sets it.
+- **Supplements** sit beside the paper as `supplement*.pdf`. Papers often
+  put the methods a claim depends on there, so a note says in `coverage`
+  whether it was read (Anna, 2026-11-10).
 - **Purpose and mechanism**: what problem the paper solves, and how. Mentor
   mode searches these.
 - **Claims**: what the authors show, each tied to a section, table, figure or
@@ -180,13 +189,25 @@ The tree's rules:
 - A topic that lists more than `topic_paper_limit` papers gets split into
   subtopics, so every page can be read in one pass.
 - Ingesting a paper updates the summaries of its parents.
+- A topic page (`template/topic.md`) lists its papers, then says how they
+  connect: what they share, where they disagree, and what one result means
+  for another, linked down to the notes. Then its open questions. The owner
+  may not have time to read the papers, so the topic page is where the
+  connections are drawn for them (Anna, 2026-11-10).
+- A paper requested but not yet fetched has a stub note with status
+  `requested`, so the request is tracked in git and `priors index` lists all
+  of them under "Requested PDFs" in `index.md`. An empty folder or a line of
+  prose on a topic page gets lost: git doesn't keep empty folders (Anna,
+  2026-11-10).
 
 **`priors index` keeps the tree honest.** It reads every header and rewrites
 `index.md` as an outline of the tree, so the index can't drift from the
 pages. It refuses (exits with an error) on a page with no summary, a missing
-or unknown parent, a paper with no parent, a bad status or a broken link. It
-warns about topics past the size limit and parents whose `updated` date is
-older than a child's. Agents run it after every change.
+or unknown parent, a paper with no parent, a bad status or version, a
+requested paper with no DOI or arXiv ID, or a broken link. It warns about
+topics past the size limit, parents whose `updated` date is older than a
+child's, a paper with a PDF but no `version`, a supplement that `coverage`
+doesn't mention, and a requested paper whose PDF has arrived. Agents run it after every change.
 
 Open: when to add a search engine. The trigger would be grep missing papers
 that word the same idea differently ("dropout" against "random masking"),

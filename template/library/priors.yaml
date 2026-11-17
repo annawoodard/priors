@@ -40,3 +40,16 @@ fetch: >-
 
 # Where pasted reviews come from, for the review procedure.
 review_source: a deep-research tool
+
+# `priors share`: what a bundle for a collaborator leaves out and how the
+# owner gets it. The owner's take is always stripped (unless --keep-private).
+share:
+  # Words whose presence in a heading marks a project-notes section, not the
+  # literature; such sections are stripped. Matched as whole words, any case.
+  strip_headings: []
+  # Regular expressions that must not appear in a bundle (project names,
+  # people, paths). A match stops the build.
+  forbidden: []
+  # Printed after a build, with {path} and {name} filled in, e.g.
+  # "rsync -av me@host:{path}/ ~/Downloads/{name}/"
+  download: null

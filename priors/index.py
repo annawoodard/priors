@@ -33,7 +33,7 @@ TOPIC_PAPER_LIMIT = 20
 SUMMARY_WORDS = 25
 RELATIONS = {"contradicts", "builds-on", "same-data-as", "same-method-as", "same-study-as"}
 LINK_LINE = re.compile(r"^- ([a-z-]+): \[")
-SKIP_DIRS = {"inbox", ".git", "digests"}
+SKIP_DIRS = {"inbox", ".git", "digests", "shares"}
 LINK = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
 
 

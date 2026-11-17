@@ -45,6 +45,7 @@ Everything specific to one owner is in the library's `priors.yaml`.
 | `run` | how to run the `priors` command on this machine |
 | `fetch` | how paywalled PDFs, which agents can't download, get into the library |
 | `review_source` | where pasted reviews come from |
+| `share` | what `priors share` strips (`strip_headings`), the patterns that stop a bundle (`forbidden`), where bundles go (`out`), the download line it prints (`download`), and the pandoc and LaTeX engine for `digest.pdf` |
 
 The library's `AGENTS.md` comes from the template and tells agents to read
 `priors.yaml` first.
@@ -289,6 +290,8 @@ Each built operation has a procedure in `procedures/`.
 | mentor mode | `mentor.md` | built |
 | answer a question | `ask.md` | built |
 | evaluate the library | `evaluate.md` | built |
+| share a page with a collaborator | `share.md` | built |
+| import a collaborator's bundle | `import-share.md` | built |
 | weekly digest | none yet | Planned |
 | monthly check | none yet | Planned |
 
@@ -339,6 +342,53 @@ fields in `watch.md`. Candidates get the same domain note as in mentor mode.
 trace to a paper note, contradictions, orphan pages and missing links. It also
 writes a short "what changed in the field this month" into that month's
 digest.
+
+## Sharing with collaborators
+
+Owners share part of their library with close collaborators (Anna,
+2026-11-17). `priors share <page>` builds a bundle: one map or topic page,
+the pages under it, the papers its topics link to, and their PDFs,
+supplements and text. PDFs go along; this is for close collaborators, as
+academics already send each other papers by email.
+
+- **Stripped:** the owner's take and sections whose heading contains a
+  `share.strip_headings` word (project notes), matched in any heading style
+  and case; `<!-- private -->` passages and all other HTML comments; header
+  fields outside the bibliographic ones. Papers linked only from stripped
+  text are not pulled in. Links to pages outside the bundle become plain
+  text, and `## Links` lines that lose their target are dropped so the
+  receiving index stays valid. Only `paper.pdf`, `paper.txt` and
+  `supplement*` files are copied from a paper folder.
+- **Fails closed:** a page with an unbalanced fence or private marker, or a
+  link form the rewriter can't see (reference-style, HTML), stops the build,
+  because each would let private text or a private link through unseen.
+- **Checked:** every text file in the assembled bundle (pages, manifest,
+  README, the digest's source) is searched for `share.forbidden` patterns
+  across line breaks before anything is written. A match stops the build,
+  because a list of project words catches leaks that a heading rule misses
+  (an introduction sentence about the owner's cohort, say). Matches in a
+  paper's own text are listed but don't stop it, since they are the
+  paper's words.
+- **Two readers, one bundle:** the folder is in the library's own layout,
+  with `manifest.yaml`, for another library or agent; `digest.pdf` is the
+  same pages in reading order with links between them, for people.
+- **Delivery** is the owner's choice, in `share.download`: a command the
+  owner runs to pull the folder. Nothing is pushed anywhere.
+
+`priors import <bundle>` merges a bundle into a library (Anna, 2026-11-17:
+merged, not kept apart). A bundle is untrusted: page names must be plain
+`map/`, `topics/` or `papers/` names, symlinks are refused, and every
+destination is checked to be inside the library and planned before anything
+is written, with written files restored if a later write fails. Papers match
+by any normalised DOI, arXiv ID or title; a paper already present keeps its
+note and gets the incoming one beside it as `shared-<owner>.md`, and its
+header gains parents by a text edit so the owner's formatting survives. A new
+paper arrives as `known`, because reading status belongs to the reader, with
+`imported_from` naming the sharer and bundle date, so importing the same
+bundle twice changes nothing. Topics with the same name get the incoming page
+appended for an agent to fold in; map pages are never overwritten, since a
+map is the owner's structure. The mechanical steps are in code; folding text
+together is an agent's job (`procedures/import-share.md`).
 
 ## Sync and storage
 

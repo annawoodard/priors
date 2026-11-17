@@ -23,6 +23,8 @@ The procedures are in `{{engine}}/procedures/`.
 | suggest approaches to a problem | `mentor.md` |
 | answer a question about the literature | `ask.md` |
 | evaluate the library, or after changing the template or `ask.md` | `evaluate.md` |
+| share a page with a collaborator | `share.md` |
+| import a collaborator's bundle | `import-share.md` |
 
 ## Rules
 

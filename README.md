@@ -46,6 +46,8 @@ The command line does the mechanical parts:
 ```
 priors index [--check]     rebuild index.md and check the tree
 priors lookup get <doi>    metadata from OpenAlex; see `priors lookup -h`
+priors share <page>        bundle a page, its subtree and PDFs for a collaborator
+priors import <bundle>     merge a collaborator's bundle into this library
 priors where               print the library and engine paths
 ```
 

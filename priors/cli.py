@@ -4,6 +4,8 @@ Commands:
   priors init <dir> --owner NAME --domain "field"   create a library
   priors index [--check]                            rebuild index.md and check the tree
   priors lookup <command> ...                       query OpenAlex and arXiv (see: priors lookup -h)
+  priors share <page> ...                           bundle a page, its subtree and PDFs for a collaborator
+  priors import <bundle> ...                        merge a collaborator's bundle into this library
   priors where                                      print the library and engine paths
 
 Commands other than init run on the library found from the current folder,
@@ -33,6 +35,14 @@ def main(argv=None):
         from . import lookup
 
         lookup.main(rest)
+    elif command == "share":
+        from . import share
+
+        share.main(rest)
+    elif command == "import":
+        from . import importer
+
+        importer.main(rest)
     elif command == "where":
         from . import config
 

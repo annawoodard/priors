@@ -16,6 +16,16 @@ DEFAULTS = {
     "run": "priors",
     "fetch": "No fetch method configured. Download open-access PDFs directly and ask the owner for the rest.",
     "review_source": "a deep-research tool",
+    "share": {
+        "out": "shares",
+        "strip_headings": [],
+        "forbidden": [],
+        "download": None,
+        "pandoc": "pandoc",
+        "pdf_engine": "xelatex",
+        "mainfont": "DejaVuSerif.ttf",
+        "monofont": "DejaVuSansMono.ttf",
+    },
 }
 
 
@@ -38,6 +48,7 @@ def load(root):
     data = yaml.safe_load((Path(root) / CONFIG).read_text()) or {}
     cfg = {**DEFAULTS, **data}
     cfg["domain"] = {**DEFAULTS["domain"], **(data.get("domain") or {})}
+    cfg["share"] = {**DEFAULTS["share"], **(data.get("share") or {})}
     if not cfg["take_heading"]:
         cfg["take_heading"] = f"{cfg['owner']}'s take"
     return cfg

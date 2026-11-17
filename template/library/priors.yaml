@@ -38,6 +38,14 @@ fetch: >-
   The owner downloads them by hand and commits them. Ask with a list of DOIs
   and target folders.
 
+# `priors fetch-prompt` and the fetch-pdfs.md in share bundles: a prompt for
+# an agent on a machine with library access. save_to is where it saves each
+# PDF ({id} is the paper's folder); then is what it does afterwards, e.g.
+# "Copy them with rsync -av ~/priors-pdfs/ me@host:/path/to/library/papers/"
+fetch_prompt:
+  save_to: "~/priors-pdfs/{id}/paper.pdf"
+  then: null
+
 # Where pasted reviews come from, for the review procedure.
 review_source: a deep-research tool
 

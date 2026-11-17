@@ -16,6 +16,7 @@ DEFAULTS = {
     "run": "priors",
     "fetch": "No fetch method configured. Download open-access PDFs directly and ask the owner for the rest.",
     "review_source": "a deep-research tool",
+    "fetch_prompt": {"save_to": "~/priors-pdfs/{id}/paper.pdf", "then": None},
     "share": {
         "out": "shares",
         "strip_headings": [],
@@ -49,6 +50,7 @@ def load(root):
     cfg = {**DEFAULTS, **data}
     cfg["domain"] = {**DEFAULTS["domain"], **(data.get("domain") or {})}
     cfg["share"] = {**DEFAULTS["share"], **(data.get("share") or {})}
+    cfg["fetch_prompt"] = {**DEFAULTS["fetch_prompt"], **(data.get("fetch_prompt") or {})}
     if not cfg["take_heading"]:
         cfg["take_heading"] = f"{cfg['owner']}'s take"
     return cfg

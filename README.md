@@ -48,6 +48,7 @@ priors index [--check]     rebuild index.md and check the tree
 priors lookup get <doi>    metadata from OpenAlex; see `priors lookup -h`
 priors share <page>        bundle a page, its subtree and PDFs for a collaborator
 priors import <bundle>     merge a collaborator's bundle into this library
+priors fetch-prompt [page] prompt for a local agent to download missing PDFs
 priors where               print the library and engine paths
 ```
 

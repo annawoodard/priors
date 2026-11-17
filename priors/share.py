@@ -28,7 +28,9 @@ build; matches in paper text are listed for the owner to look at.
 
 The bundle is a folder in the library's own layout (map/, topics/, papers/),
 with manifest.yaml, README.md and, unless --no-digest, digest.pdf: the pages
-in reading order with links between them, built with pandoc.
+in reading order with links between them, built with pandoc. When some papers
+have no paper.pdf, it also holds fetch-pdfs.md, a prompt the recipient can give
+a local agent to download them into the bundle.
 """
 
 import datetime
@@ -41,7 +43,7 @@ from pathlib import Path
 
 import yaml
 
-from . import config, index
+from . import config, fetch, index
 
 FORMAT = "priors-share 1"
 HEADING = re.compile(r"^ {0,3}(#{1,6})\s+(.*?)\s*#*\s*$")
@@ -476,11 +478,18 @@ def main(argv=None):
     files["README.md"] = (
         f"# {root_title}\n\n"
         f"Shared from {cfg['owner']}'s literature library on {date}: "
-        f"{len(order) - papers} map/topic pages and {papers} paper notes, with the papers' PDFs.\n\n"
+        f"{len(order) - papers} map or topic page{'s' * (len(order) - papers != 1)} and {papers} paper notes, with the papers' PDFs.\n\n"
         "- To read: open `digest.pdf`, or start at "
         f"[`{nodes[start]['path'].as_posix()}`]({nodes[start]['path'].as_posix()}).\n"
         "- To add it to your own priors library: `priors import <this folder>`.\n"
     )
+    no_pdf = fetch.missing(root, nodes, order)
+    if no_pdf:
+        files["README.md"] += (
+            f"- {len(no_pdf)} of the {papers} papers came without a PDF. To fill them in, give "
+            "[`fetch-pdfs.md`](fetch-pdfs.md) to an agent on a machine with library access.\n"
+        )
+        files["fetch-pdfs.md"] = fetch.bundle_prompt(nodes, no_pdf)
     anchors = {nodes[n]["path"].as_posix(): anchor(n) for n in order}
     digest_src = None
     if opts["digest"]:
@@ -516,7 +525,9 @@ def main(argv=None):
     except BaseException:
         shutil.rmtree(tmp, ignore_errors=True)
         raise
-    print(f"Bundle: {final} ({len(order)} pages, {papers} papers)")
+    print(f"Bundle: {final} ({len(order)} pages, {papers} papers, {papers - len(no_pdf)} with PDFs)")
+    if no_pdf:
+        print(f"fetch-pdfs.md asks the recipient's agent for the other {len(no_pdf)}; `priors fetch-prompt {start}` writes the same request for yours.")
     if text_hits:
         print("Forbidden patterns also appear in paper text (the papers' own words; shipped). Check these are the paper's:")
         print("\n".join(text_hits))

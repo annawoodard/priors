@@ -6,6 +6,7 @@ Commands:
   priors lookup <command> ...                       query OpenAlex and arXiv (see: priors lookup -h)
   priors share <page> ...                           bundle a page, its subtree and PDFs for a collaborator
   priors import <bundle> ...                        merge a collaborator's bundle into this library
+  priors fetch-prompt [<page>]                      write a prompt for a local agent to download missing PDFs
   priors where                                      print the library and engine paths
 
 Commands other than init run on the library found from the current folder,
@@ -43,6 +44,10 @@ def main(argv=None):
         from . import importer
 
         importer.main(rest)
+    elif command == "fetch-prompt":
+        from . import fetch
+
+        fetch.main(rest)
     elif command == "where":
         from . import config
 

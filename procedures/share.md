@@ -27,4 +27,8 @@ Then rebuild, and open `digest.pdf` before handing it over: check the table
 of contents, a topic page and one paper note, and that no stripped section
 survived. Give the owner the download line the build prints, which comes
 from `share.download`. Follow any delivery rule written beside that setting.
+If the build says some papers have no PDF, the bundle carries
+`fetch-pdfs.md` for the recipient; tell the owner how many, and offer the
+prompt `priors fetch-prompt <page>` prints so they can fill their own
+library first and rebuild.
 Log the share in `log.md`: page, papers, and what was stripped.

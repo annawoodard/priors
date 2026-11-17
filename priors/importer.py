@@ -336,7 +336,14 @@ def main(argv=None):
             local_header = nodes[dest]["header"]
             if str(local_header.get("imported_from") or "").startswith(f"{owner},"):
                 if str(local_header.get("imported_from")) >= stamp:
-                    lines.append(f"skip    {dest}: already imported from this or a newer bundle")
+                    # PDFs fetched into the bundle after the first import still come across.
+                    arrived = [f for f in page["files"] if not (root / dest / f.name).exists()]
+                    if arrived:
+                        lines.append(f"copy    {dest}: {', '.join(f.name for f in arrived)}")
+                        for f in arrived:
+                            writes.copy(f"{dest}/{f.name}", f)
+                    else:
+                        lines.append(f"skip    {dest}: already imported from this or a newer bundle")
                     continue
                 header.update(id=dest.split("/")[-1], parents=parents, imported_from=stamp)
                 if header.get("status") != "requested":
@@ -373,7 +380,7 @@ def main(argv=None):
     if opts["dry_run"]:
         print("(dry run: nothing written)")
         return
-    counts = {k: sum(x.startswith(k) for x in lines) for k in ("create", "merge", "match", "update", "skip")}
+    counts = {k: sum(x.startswith(k) for x in lines) for k in ("create", "merge", "match", "update", "copy", "skip")}
     log_text = (root / "log.md").read_text() if (root / "log.md").exists() else ""
     writes.text(
         "log.md",
@@ -381,7 +388,7 @@ def main(argv=None):
         + f"\n\n## {date} import | {manifest['root']} from {owner}\n\n"
         f"Bundle of {created} from {owner}'s library at {manifest.get('source_commit')}. "
         f"{counts['create']} pages created, {counts['merge']} topics merged, {counts['match']} papers already here, "
-        f"{counts['update']} updated from an earlier import, {counts['skip']} skipped. Merged sections await folding in.\n",
+        f"{counts['update']} updated from an earlier import, {counts['copy']} given PDFs that arrived since, {counts['skip']} skipped. Merged sections await folding in.\n",
     )
     writes.apply()
     print("Next: priors index, then procedures/import-share.md")

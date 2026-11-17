@@ -10,22 +10,14 @@ parent topic), then run `priors index`. Its "Requested PDFs" section in
 supplements the same way, as `papers/<id>/supplement.pdf`, when a paper's
 methods or results are in one.
 
-Then follow `fetch` in `priors.yaml`, which says how this owner gets
-paywalled PDFs. Usually that means writing a request and showing it to the
-owner. If `fetch` says to write a prompt for another agent, keep it short and
-self-contained, because that agent has none of this context:
-
-```
-In the git repo <library repo> (clone or pull it first), download these
-papers and save each one at the path shown. Don't rename or edit anything
-else.
-
-- 10.xxxx/yyyy -> papers/<id>/paper.pdf
-- ...
-
-Then git add the PDFs (they go through Git LFS), commit with the message
-"Add PDFs: <ids>", and push. Say which you couldn't get and why.
-```
+Then run `priors fetch-prompt` (every requested paper) or
+`priors fetch-prompt <page>` (every paper under a page that lacks
+`paper.pdf`, including abstract-only and PubMed Central text notes; no stub
+needed). It prints a self-contained prompt for an agent on a machine with
+library access, with save paths and a follow-up step from `fetch_prompt` in
+`priors.yaml`. Show it to the owner as printed, and follow `fetch` in
+`priors.yaml` for anything else about how this owner gets paywalled PDFs
+(another folder to check first, say).
 
 When the PDFs arrive, `priors index` warns about each stub whose `paper.pdf`
 has arrived. Ingest each one. Check that every PDF is a real PDF whose title

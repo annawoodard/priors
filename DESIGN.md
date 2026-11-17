@@ -44,6 +44,7 @@ Everything specific to one owner is in the library's `priors.yaml`.
 | `topic_paper_limit` | how many papers a topic can list before `priors index` warns |
 | `run` | how to run the `priors` command on this machine |
 | `fetch` | how paywalled PDFs, which agents can't download, get into the library |
+| `fetch_prompt` | for `priors fetch-prompt`: where the local agent saves each PDF (`save_to`, with `{id}`) and what it runs afterwards (`then`) |
 | `review_source` | where pasted reviews come from |
 | `share` | what `priors share` strips (`strip_headings`), the patterns that stop a bundle (`forbidden`), where bundles go (`out`), the download line it prints (`download`), and the pandoc and LaTeX engine for `digest.pdf` |
 
@@ -374,6 +375,14 @@ academics already send each other papers by email.
   same pages in reading order with links between them, for people.
 - **Delivery** is the owner's choice, in `share.download`: a command the
   owner runs to pull the folder. Nothing is pushed anywhere.
+- **Missing PDFs:** a paper read from PubMed Central text or an abstract has
+  no `paper.pdf`, and agents on a cluster often can't download it. The bundle
+  then carries `fetch-pdfs.md`, a prompt the recipient gives an agent on a
+  machine with library access, saving into the bundle's own `papers/`
+  folders; `priors import` copies PDFs that arrive after an earlier import.
+  `priors fetch-prompt [<page>]` writes the same prompt for the owner, with
+  paths and a follow-up step from `fetch_prompt` in `priors.yaml` (Anna,
+  2026-11-17: collaborators need it too).
 
 `priors import <bundle>` merges a bundle into a library (Anna, 2026-11-17:
 merged, not kept apart). A bundle is untrusted: page names must be plain
